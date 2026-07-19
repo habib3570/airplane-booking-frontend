@@ -39,6 +39,9 @@ import FAQPage from "../pages/static/FAQPage";
 import AirlineDetails from "../pages/public/AirlineDetails";
 import AirportDetails from "../pages/public/AirportDetails";
 
+//admin setting
+import SettingsPage from "../pages/admin/SettingsPage";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -124,6 +127,7 @@ export default function AppRoutes() {
         <Route path="airports" element={<AirportsManagement />} />
         <Route path="flights" element={<FlightsManagement />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

@@ -14,6 +14,7 @@ import {
   Building2,
   MapPin,
   BarChart3,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../utils/constants";
@@ -27,11 +28,13 @@ const passengerNav = [
 
 const adminNav = [
   { label: "Admin Home", icon: LayoutDashboard, to: "/admin" },
+  
   { label: "Users", icon: Users, to: "/admin/users" },
   { label: "Airlines", icon: Building2, to: "/admin/airlines" },
   { label: "Airports", icon: MapPin, to: "/admin/airports" },
   { label: "Flights", icon: Plane, to: "/admin/flights" },
   { label: "Reports", icon: BarChart3, to: "/admin/reports" },
+  { label: "Settings", icon: Settings, to: "/admin/settings" },
   { label: "My Bookings", icon: Ticket, to: "/dashboard/bookings" },
   { label: "My Tickets", icon: Ticket, to: "/dashboard/tickets" },
   { label: "Profile", icon: User, to: "/dashboard/profile" },
