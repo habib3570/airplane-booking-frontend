@@ -42,6 +42,10 @@ import AirportDetails from "../pages/public/AirportDetails";
 //admin setting
 import SettingsPage from "../pages/admin/SettingsPage";
 
+// stripe payment result pages
+import PaymentSuccessPage from "../pages/PaymentSuccessPage";
+import PaymentCancelledPage from "../pages/PaymentCancelledPage";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -78,6 +82,24 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <BookingConfirmation />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Stripe Checkout redirect back করার পর এই পেজ দুটোতে আসবে — logged-in যেকোনো user, admin না */}
+        <Route
+          path="/booking/payment-success"
+          element={
+            <ProtectedRoute>
+              <PaymentSuccessPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/payment-cancelled"
+          element={
+            <ProtectedRoute>
+              <PaymentCancelledPage />
             </ProtectedRoute>
           }
         />

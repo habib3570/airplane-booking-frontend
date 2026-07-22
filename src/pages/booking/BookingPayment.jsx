@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Wallet, Hash, Phone, ShieldCheck } from "lucide-react";
+import { ShieldCheck, CreditCard } from "lucide-react";
 import toast from "react-hot-toast";
 import Card from "../../components/ui/Card";
-import Input from "../../components/ui/Input";
-import Select from "../../components/ui/Select";
 import Button from "../../components/ui/Button";
 import Spinner from "../../components/ui/Spinner";
 import BookingFlightSummary from "../../components/booking/BookingFlightSummary";
 import { getBookingById } from "../../api/bookingApi";
-import { verifyManualPayment } from "../../api/paymentApi";
-import { PAYMENT_METHOD_OPTIONS, BOOKING_STATUS } from "../../utils/enums";
+import { createCheckoutSession } from "../../api/paymentApi";
+import { BOOKING_STATUS } from "../../utils/enums";
 import { formatCurrency, getErrorMessage } from "../../utils/helpers";
 
 export default function BookingPayment() {
@@ -19,14 +17,7 @@ export default function BookingPayment() {
 
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [form, setForm] = useState({
-    paymentMethod: "bKash",
-    transactionId: "",
-    payerPaymentNumber: "",
-  });
-  const [errors, setErrors] = useState({});
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     fetchBooking();
@@ -48,40 +39,15 @@ export default function BookingPayment() {
     }
   }
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
-  }
-
-  function validate() {
-    const newErrors = {};
-    if (!form.transactionId.trim())
-      newErrors.transactionId = "Transaction ID is required";
-    if (!form.payerPaymentNumber.trim())
-      newErrors.payerPaymentNumber = "Payment account number is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!validate()) return;
-
-    setIsSubmitting(true);
+  async function handlePayNow() {
+    setIsRedirecting(true);
     try {
-      await verifyManualPayment({
-        bookingId: id,
-        paymentMethod: form.paymentMethod,
-        transactionId: form.transactionId,
-        payerPaymentNumber: form.payerPaymentNumber,
-      });
-      toast.success("Payment verified! Your ticket is ready.");
-      navigate(`/booking/${id}/confirmation`);
+      const { checkoutUrl } = await createCheckoutSession(id);
+      // Redirect the browser to Stripe's hosted Checkout page
+      window.location.href = checkoutUrl;
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
+      setIsRedirecting(false);
     }
   }
 
@@ -128,62 +94,28 @@ export default function BookingPayment() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="text-navy flex-shrink-0 mt-0.5" size={20} />
             <div className="text-sm text-navy">
-              <p className="font-semibold mb-1">Manual Payment Instructions</p>
+              <p className="font-semibold mb-1">Secure Payment via Stripe</p>
               <p className="text-muted">
-                Send{" "}
-                <span className="font-semibold text-navy">
-                  {formatCurrency(booking.totalAmount, booking.currencyCode)}
-                </span>{" "}
-                to our bKash/SPay merchant number{" "}
-                <span className="font-semibold text-navy">01700-000000</span>,
-                then enter your transaction ID and the number you paid from
-                below.
+                You'll be redirected to Stripe's secure checkout page to
+                complete your payment with a card. Your booking will be
+                confirmed automatically once payment succeeds.
               </p>
             </div>
           </div>
         </Card>
 
         <Card>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Select
-              label="Payment Method"
-              name="paymentMethod"
-              icon={Wallet}
-              options={PAYMENT_METHOD_OPTIONS}
-              value={form.paymentMethod}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              label="Transaction ID"
-              name="transactionId"
-              icon={Hash}
-              placeholder="e.g. 8N7A2K9X1P"
-              value={form.transactionId}
-              onChange={handleChange}
-              error={errors.transactionId}
-              required
-            />
-            <Input
-              label="Your Payment Account Number"
-              name="payerPaymentNumber"
-              icon={Phone}
-              placeholder="e.g. 01711111111"
-              value={form.payerPaymentNumber}
-              onChange={handleChange}
-              error={errors.payerPaymentNumber}
-              required
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-              isLoading={isSubmitting}
-            >
-              Confirm Payment
-            </Button>
-          </form>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            className="w-full"
+            isLoading={isRedirecting}
+            onClick={handlePayNow}
+          >
+            <CreditCard size={18} className="mr-2" />
+            Pay {formatCurrency(booking.totalAmount, booking.currencyCode)} with Stripe
+          </Button>
         </Card>
       </div>
     </div>

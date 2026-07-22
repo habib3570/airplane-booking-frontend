@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSettings } from "../../hooks/useSettings";
 import BrandingSection from "../../components/settings/BrandingSection";
 import SmtpSection from "../../components/settings/SmtpSection";
+import StripeSection from "../../components/settings/StripeSection";
 import "./SettingsPage.css";
 
 export default function SettingsPage() {
@@ -37,6 +38,12 @@ export default function SettingsPage() {
     const result = await updateSettings(formData);
     if (result.success) {
       showToast("success", "Settings saved successfully.");
+      // Secret fields খালি করে দিচ্ছি সেভ হওয়ার পর (আবার আগের মতো blank দেখাবে, security জন্য)
+      setFormData((prev) => ({
+        ...prev,
+        stripeSecretKey: "",
+        stripeWebhookSecret: "",
+      }));
     } else {
       showToast("error", result.message);
     }
@@ -107,6 +114,8 @@ export default function SettingsPage() {
           onChange={handleChange}
           onTestSmtp={handleTestSmtp}
         />
+
+        <StripeSection formData={formData} onChange={handleChange} />
 
         <div className="settings-actions">
           <button type="submit" className="btn-primary" disabled={saving}>
