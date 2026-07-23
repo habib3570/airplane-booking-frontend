@@ -7,31 +7,35 @@ import Input from "../../components/ui/Input";
 import Textarea from "../../components/ui/Textarea";
 import Button from "../../components/ui/Button";
 import { isValidEmail } from "../../utils/validators";
-
-const contactInfo = [
-  {
-    icon: Phone,
-    title: "Phone",
-    lines: ["+880 1700-000000", "+880 2-9876543"],
-  },
-  {
-    icon: Mail,
-    title: "Email",
-    lines: ["support@skybook.com", "sales@skybook.com"],
-  },
-  {
-    icon: MapPin,
-    title: "Office",
-    lines: ["Gulshan Avenue, Dhaka", "Bangladesh 1212"],
-  },
-  {
-    icon: Clock,
-    title: "Working Hours",
-    lines: ["24/7 Customer Support", "Office: Sun-Thu, 9AM-6PM"],
-  },
-];
+import { useSiteSettings } from "../../context/SiteSettingsContext";
+import contactApi from "../../api/contactApi";
 
 export default function Contact() {
+  const siteSettings = useSiteSettings();
+
+  const contactInfo = [
+    {
+      icon: Phone,
+      title: "Phone",
+      lines: ["+880 1700-000000", "+880 2-9876543"],
+    },
+    {
+      icon: Mail,
+      title: "Email",
+      lines: [siteSettings.supportEmail || "support@skybook.com"],
+    },
+    {
+      icon: MapPin,
+      title: "Office",
+      lines: ["Gulshan Avenue, Dhaka", "Bangladesh 1212"],
+    },
+    {
+      icon: Clock,
+      title: "Working Hours",
+      lines: ["24/7 Customer Support", "Office: Sun-Thu, 9AM-6PM"],
+    },
+  ];
+
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,19 +57,28 @@ export default function Contact() {
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!validate()) return;
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (!validate()) return;
 
-    setIsSubmitting(true);
-    // NOTE: No Contact/Support-message API endpoint exists in the provided spec.
-    // Wire this to a real endpoint once available (e.g. POST /api/v1/support/messages).
-    setTimeout(() => {
-      toast.success("Message sent! Our team will get back to you soon.");
-      setForm({ name: "", email: "", subject: "", message: "" });
-      setIsSubmitting(false);
-    }, 800);
+  setIsSubmitting(true);
+  try {
+    await contactApi.send({
+      name: form.name,
+      email: form.email,
+      subject: form.subject,
+      message: form.message,
+    });
+    toast.success("Message sent! Our team will get back to you soon.");
+    setForm({ name: "", email: "", subject: "", message: "" });
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to send message. Please try again."
+    );
+  } finally {
+    setIsSubmitting(false);
   }
+}
 
   return (
     <div>

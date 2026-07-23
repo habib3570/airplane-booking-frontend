@@ -35,6 +35,11 @@ const settingsApi = {
     });
     return response.data;
   },
+
+getPublicSettings: async () => {
+  const response = await axiosClient.get("/api/v1/settings/public");
+  return response.data;
+},
 };
 
 export default settingsApi;

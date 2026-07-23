@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Plane, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { getInitials, cn, resolveImageUrl } from "../../utils/helpers";
 import { ROLES } from "../../utils/constants";
 
@@ -14,6 +15,7 @@ const navLinks = [
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
+  const siteSettings = useSiteSettings();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,11 +45,19 @@ export default function Header() {
       <div className="container-app flex items-center justify-between h-16 sm:h-20">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-navy flex items-center justify-center">
-            <Plane className="text-gold" size={20} />
-          </div>
+          {siteSettings.logoUrl ? (
+            <img
+              src={siteSettings.logoUrl}
+              alt={siteSettings.siteName}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-navy flex items-center justify-center">
+              <Plane className="text-gold" size={20} />
+            </div>
+          )}
           <span className="text-lg sm:text-xl font-heading font-bold text-navy">
-            SkyBook
+            {siteSettings.siteName}
           </span>
         </Link>
 
@@ -95,15 +105,15 @@ export default function Header() {
                 className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-gray-200 hover:border-gold transition-colors"
               >
                 <div className="w-8 h-8 rounded-full bg-navy text-gold flex items-center justify-center text-xs font-semibold overflow-hidden">
-                 {user?.profilePictureUrl ? (
-  <img
-    src={resolveImageUrl(user.profilePictureUrl)}
-    alt={user.fullName}
-    className="w-full h-full object-cover"
-  />
-) : (
-  getInitials(user?.fullName)
-)}
+                  {user?.profilePictureUrl ? (
+                    <img
+                      src={resolveImageUrl(user.profilePictureUrl)}
+                      alt={user.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    getInitials(user?.fullName)
+                  )}
                 </div>
                 <span className="text-sm font-medium text-navy">
                   {user?.firstName}

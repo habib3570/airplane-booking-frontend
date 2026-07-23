@@ -21,6 +21,13 @@ const WebhookIcon = () => (
   </svg>
 );
 
+const CurrencyIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+    <path d="M12 7v10M9.5 9.5c0-1.1 1-2 2.5-2s2.5.7 2.5 1.8-1 1.6-2.5 2-2.5.9-2.5 2 1 1.8 2.5 1.8 2.5-.9 2.5-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+  </svg>
+);
+
 export default function StripeSection({ formData, onChange }) {
   const isEnabled = formData.stripeEnabled || false;
 
@@ -80,6 +87,29 @@ export default function StripeSection({ formData, onChange }) {
               }
               className="mono-input"
             />
+          </div>
+        </div>
+
+        <div className="stripe-group">
+          <div className="stripe-group-label">
+            <CurrencyIcon />
+            <span>Currency Conversion</span>
+          </div>
+
+          <div className="settings-field">
+            <label>USD to BDT Exchange Rate</label>
+            <input
+              type="number"
+              step="0.01"
+              min="1"
+              value={formData.usdToBdtRate || ""}
+              onChange={(e) => onChange("usdToBdtRate", parseFloat(e.target.value) || 0)}
+              placeholder="e.g. 122.50"
+              className="mono-input"
+            />
+            <p className="settings-hint">
+              Stripe BDT সাপোর্ট করে না, তাই বুকিং amount USD এ কনভার্ট করে পাঠানো হয়। এই rate নিয়মিত আপডেট করুন (বর্তমান মার্কেট রেট অনুযায়ী)।
+            </p>
           </div>
         </div>
 

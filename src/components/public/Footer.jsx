@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Plane, MapPin, Phone, Mail } from "lucide-react";
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa";
+import { useSiteSettings } from "../../context/SiteSettingsContext";
 
 const footerLinks = {
   company: [
@@ -30,6 +31,8 @@ const socials = [
 ];
 
 export default function Footer() {
+  const siteSettings = useSiteSettings();
+
   return (
     <footer className="bg-navy pt-14 pb-6">
       <div className="container-app">
@@ -37,11 +40,19 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center">
-                <Plane className="text-navy" size={18} />
-              </div>
+              {siteSettings.logoUrl ? (
+                <img
+                  src={siteSettings.logoUrl}
+                  alt={siteSettings.siteName}
+                  className="w-9 h-9 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center">
+                  <Plane className="text-navy" size={18} />
+                </div>
+              )}
               <span className="text-lg font-heading font-bold text-white">
-                SkyBook
+                {siteSettings.siteName}
               </span>
             </Link>
             <p className="text-white/60 text-sm mb-5 max-w-xs leading-relaxed">
@@ -57,10 +68,12 @@ export default function Footer() {
                 <Phone size={15} className="text-gold flex-shrink-0" />
                 <span>+880 1700-000000</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Mail size={15} className="text-gold flex-shrink-0" />
-                <span>support@skybook.com</span>
-              </div>
+              {siteSettings.supportEmail && (
+                <div className="flex items-center gap-2">
+                  <Mail size={15} className="text-gold flex-shrink-0" />
+                  <span>{siteSettings.supportEmail}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -123,11 +136,10 @@ export default function Footer() {
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-  <p className="text-white/40 text-xs text-center sm:text-left">
-    © {new Date().getFullYear()} SkyBook. All rights reserved.
-  </p>
-  
-</div>
+          <p className="text-white/40 text-xs text-center sm:text-left">
+            © {new Date().getFullYear()} {siteSettings.siteName}. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

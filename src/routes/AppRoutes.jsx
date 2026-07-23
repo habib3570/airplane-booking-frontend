@@ -41,6 +41,8 @@ import AirportDetails from "../pages/public/AirportDetails";
 
 //admin setting
 import SettingsPage from "../pages/admin/SettingsPage";
+//admin contacts
+import ContactMessages from "../pages/admin/ContactMessages";
 
 // stripe payment result pages
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
@@ -150,6 +152,7 @@ export default function AppRoutes() {
         <Route path="flights" element={<FlightsManagement />} />
         <Route path="reports" element={<Reports />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="messages" element={<ContactMessages />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { cn, getInitials, resolveImageUrl } from "../utils/helpers";
 import {
@@ -15,9 +14,12 @@ import {
   MapPin,
   BarChart3,
   Settings,
+  Mail,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 import { ROLES } from "../utils/constants";
+import contactApi from "../api/contactApi";
 
 const passengerNav = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
@@ -28,11 +30,11 @@ const passengerNav = [
 
 const adminNav = [
   { label: "Admin Home", icon: LayoutDashboard, to: "/admin" },
-  
   { label: "Users", icon: Users, to: "/admin/users" },
   { label: "Airlines", icon: Building2, to: "/admin/airlines" },
   { label: "Airports", icon: MapPin, to: "/admin/airports" },
   { label: "Flights", icon: Plane, to: "/admin/flights" },
+  { label: "Messages", icon: Mail, to: "/admin/messages" },
   { label: "Reports", icon: BarChart3, to: "/admin/reports" },
   { label: "Settings", icon: Settings, to: "/admin/settings" },
   { label: "My Bookings", icon: Ticket, to: "/dashboard/bookings" },
@@ -42,11 +44,28 @@ const adminNav = [
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
+  const siteSettings = useSiteSettings();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const navItems = user?.role === ROLES.ADMIN ? adminNav : passengerNav;
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (user?.role !== ROLES.ADMIN) return;
+    try {
+      const count = await contactApi.getUnreadCount();
+      setUnreadCount(count);
+    } catch {
+      // silent fail — badge just won't show
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    // Messages পেজ থেকে অন্য পেজে গেলে count রিফ্রেশ হবে (read mark করার পর)
+  }, [fetchUnreadCount, location.pathname]);
 
   async function handleLogout() {
     await logout();
@@ -69,31 +88,52 @@ export default function DashboardLayout() {
         )}
       >
         <div className="flex items-center gap-2 px-6 h-16 border-b border-white/10">
-          <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center">
-            <Plane className="text-navy" size={18} />
-          </div>
+          {siteSettings.logoUrl ? (
+            <img
+              src={siteSettings.logoUrl}
+              alt={siteSettings.siteName}
+              className="w-9 h-9 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center">
+              <Plane className="text-navy" size={18} />
+            </div>
+          )}
           <span className="text-lg font-heading font-bold text-white">
-            SkyBook
+            {siteSettings.siteName}
           </span>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
+            const isMessages = item.to === "/admin/messages";
             return (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-gold text-navy"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
                 )}
               >
-                <item.icon size={18} />
-                {item.label}
+                <span className="flex items-center gap-3">
+                  <item.icon size={18} />
+                  {item.label}
+                </span>
+                {isMessages && unreadCount > 0 && (
+                  <span
+                    className={cn(
+                      "text-xs font-semibold rounded-full px-2 py-0.5 min-w-[20px] text-center",
+                      isActive ? "bg-navy text-white" : "bg-red-500 text-white"
+                    )}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -128,14 +168,14 @@ export default function DashboardLayout() {
             </div>
             <div className="w-10 h-10 rounded-full bg-navy text-gold flex items-center justify-center font-semibold text-sm overflow-hidden">
               {user?.profilePictureUrl ? (
-  <img
-    src={resolveImageUrl(user.profilePictureUrl)}
-    alt={user.fullName}
-    className="w-full h-full object-cover"
-  />
-) : (
-  getInitials(user?.fullName)
-)}
+                <img
+                  src={resolveImageUrl(user.profilePictureUrl)}
+                  alt={user.fullName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                getInitials(user?.fullName)
+              )}
             </div>
           </div>
         </header>
